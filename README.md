@@ -155,24 +155,47 @@
     - WebSocket integration
     - مدیریت مسابقه دو نفره
 
-21. **[PROGRESS_MODULE.md](./PROGRESS_MODULE.md)** ⭐
+21. **[ONLINE_GAME_SYSTEM.md](./ONLINE_GAME_SYSTEM.md)** ⭐⭐⭐
+    - سیستم کامل بازی آنلاین
+    - Matchmaking System (تطبیق بازیکنان با ELO Rating)
+    - نوبت‌بندی بازیکنان (Turn-based & Simultaneous)
+    - WebSocket Implementation کامل
+    - مدیریت قطع اتصال و اتصال مجدد
+    - State Management و Error Recovery
+    - Scalability و Performance Optimization
+    - Heartbeat Mechanism
+    - Redis Pub/Sub برای چند سرور
+
+22. **[PROGRESS_MODULE.md](./PROGRESS_MODULE.md)** ⭐
     - مدیریت XP و Level
     - به‌روزرسانی آمار کاربر
     - بررسی دستاوردها
     - دریافت دستاوردهای کاربر
     - Repository و Service کامل
 
-22. **[LEADERBOARD_MODULE.md](./LEADERBOARD_MODULE.md)** ⭐
+23. **[LEADERBOARD_MODULE.md](./LEADERBOARD_MODULE.md)** ⭐
     - Leaderboard (All-time, Weekly, Monthly)
     - Category Leaderboard
     - دریافت رتبه کاربر
     - Redis Caching
     - Auto-refresh
 
-23. **[MODULES_CHECKLIST.md](./MODULES_CHECKLIST.md)** ⭐
+24. **[MODULES_CHECKLIST.md](./MODULES_CHECKLIST.md)** ⭐
     - چک‌لیست کامل بودن همه ماژول‌ها
     - بررسی جزئیات هر ماژول
     - Status هر ماژول
+
+### 🧪 تست‌ها
+
+25. **[TESTING_STRATEGY.md](./TESTING_STRATEGY.md)** ⭐⭐⭐
+    - استراتژی کامل تست
+    - Unit Tests (Services, Repositories, Controllers)
+    - Integration Tests (API Endpoints)
+    - تست منطق بازی (Game Flow, Multiplayer)
+    - تست امنیت (Authentication, Authorization, Input Validation)
+    - Setup و Configuration
+    - Test Coverage Goals
+    - مثال‌های کامل کد تست
 
 ## 🎯 ویژگی‌های سیستم
 
