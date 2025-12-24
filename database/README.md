@@ -1,208 +1,88 @@
-# 📊 دیتابیس Quiz Game
+# راهنمای Database
 
-این پوشه شامل تمام فایل‌های مربوط به طراحی و پیاده‌سازی دیتابیس است.
+## تنظیمات
 
-## 📁 فایل‌ها
+- **Host**: localhost
+- **Port**: 5433
+- **Database**: quiz_game
+- **User**: postgres
+- **Password**: 4522
 
-### 1. **DATABASE_SCHEMA.md** ⭐
-**مستندات کامل طراحی دیتابیس**
-- نمودار ERD
-- توضیح کامل تمام جداول
-- فیلدها و نوع داده‌ها
-- روابط بین جداول
-- Indexes
-- Constraints
-- Views و Triggers
+## نصب و راه‌اندازی
 
-### 2. **schema_postgresql.sql** ⭐ (توصیه می‌شود)
-**فایل SQL بهینه‌شده برای PostgreSQL**
-- بهینه‌سازی‌های خاص PostgreSQL
-- TIMESTAMPTZ برای timezone support
-- JSONB برای داده‌های انعطاف‌پذیر
-- Full-Text Search
-- Materialized Views
-- Functions و Stored Procedures
-- GIN Indexes
+### Windows (PowerShell)
 
-**نحوه اجرا:**
-```bash
-psql -U postgres -d quiz_game -f schema_postgresql.sql
+```powershell
+cd database
+.\setup_database.ps1
 ```
 
-### 2.1. **schema.sql**
-**فایل SQL پایه (سازگار با تمام DBMS)**
-- CREATE TABLE statements
-- Indexes
-- Foreign Keys
-- Constraints
-- Triggers
-- Views
+### Linux/Mac (Bash)
 
-**نحوه اجرا:**
 ```bash
-psql -U postgres -d quiz_game -f schema.sql
+cd database
+chmod +x setup_database.sh
+./setup_database.sh
 ```
 
-### 3. **POSTGRESQL_FEATURES.md** ⭐
-**ویژگی‌های PostgreSQL استفاده شده**
-- توضیح بهینه‌سازی‌ها
-- TIMESTAMPTZ, JSONB, Full-Text Search
-- Materialized Views
-- Performance Tips
-- Monitoring Queries
+### دستی
 
-### 4. **DATABASE_SUMMARY.md**
-**خلاصه طراحی دیتابیس**
-- لیست جداول
-- روابط کلیدی
-- Query های پرکاربرد
-- Constraints مهم
-- Indexes استراتژیک
+#### 1. ایجاد Database
 
-### 5. **seeds/initial_data.sql**
-**داده‌های اولیه**
-- دسته‌بندی‌های پیش‌فرض
-- دستاوردهای پیش‌فرض
-- کاربر ادمین (اختیاری)
-
-**نحوه اجرا:**
 ```bash
-psql -U postgres -d quiz_game -f seeds/initial_data.sql
+psql -U postgres -p 5433 -h localhost
 ```
 
----
-
-## 🗄️ ساختار دیتابیس
-
-### جداول اصلی (11 جدول)
-
-1. **users** - کاربران
-2. **categories** - دسته‌بندی‌ها
-3. **questions** - سوالات
-4. **question_options** - گزینه‌های سوالات
-5. **matches** - بازی‌ها (Sessions)
-6. **match_questions** - سوالات هر بازی
-7. **user_answers** - پاسخ‌های کاربران
-8. **achievements** - دستاوردها
-9. **user_achievements** - دستاوردهای کاربران
-10. **user_stats** - آمار کاربران
-11. **leaderboard** - جدول رده‌بندی (Cache)
-
----
-
-## 🚀 راهنمای استفاده
-
-### 1. ایجاد دیتابیس
+در psql:
 ```sql
 CREATE DATABASE quiz_game;
+\q
 ```
 
-### 2. اجرای Schema
+#### 2. اجرای Schema
 
-**برای PostgreSQL (توصیه می‌شود):**
 ```bash
-psql -U postgres -d quiz_game -f schema_postgresql.sql
+psql -U postgres -p 5433 -h localhost -d quiz_game -f schema_postgresql.sql
 ```
 
-**یا برای نسخه پایه:**
+یا با PGPASSWORD:
 ```bash
-psql -U postgres -d quiz_game -f schema.sql
+PGPASSWORD=4522 psql -U postgres -p 5433 -h localhost -d quiz_game -f schema_postgresql.sql
 ```
 
-### 3. Seed Data (اختیاری)
+#### 3. Seed Data (اختیاری)
+
 ```bash
-psql -U postgres -d quiz_game -f seeds/initial_data.sql
+psql -U postgres -p 5433 -h localhost -d quiz_game -f seeds/initial_data.sql
 ```
 
-### 4. بررسی جداول
-```sql
-\dt  -- لیست جداول
-\d users  -- ساختار جدول users
+## فایل‌ها
+
+- `schema_postgresql.sql` - Schema کامل دیتابیس
+- `seeds/initial_data.sql` - داده‌های اولیه
+- `DATABASE_SCHEMA.md` - مستندات schema
+- `setup_database.ps1` - Script نصب برای Windows
+- `setup_database.sh` - Script نصب برای Linux/Mac
+
+## اتصال به دیتابیس
+
+```bash
+psql -U postgres -p 5433 -h localhost -d quiz_game
 ```
 
----
-
-## 📋 ویژگی‌های طراحی
-
-✅ **Normalization**: 3NF (Third Normal Form)
-✅ **Performance**: Indexes برای query های پرکاربرد
-✅ **Data Integrity**: Foreign Keys و Constraints
-✅ **Scalability**: ساختار آماده برای مقیاس‌پذیری
-✅ **Security**: Constraints برای validation
-✅ **Audit**: created_at و updated_at برای tracking
-
----
-
-## 🔗 روابط کلیدی
-
-```
-users ──→ matches ──→ match_questions ──→ questions
-users ──→ user_answers ──→ questions
-users ──→ user_stats ──→ categories
-questions ──→ question_options
-questions ──→ categories
+یا با PGPASSWORD:
+```bash
+PGPASSWORD=4522 psql -U postgres -p 5433 -h localhost -d quiz_game
 ```
 
----
+## Backup
 
-## 📝 نکات مهم
-
-1. **Foreign Keys**: تمام روابط با Foreign Key تعریف شده
-2. **Cascade Rules**: 
-   - حذف کاربر → حذف بازی‌ها و پاسخ‌ها
-   - حذف سوال → حذف گزینه‌ها
-3. **Constraints**: Check constraints برای validation
-4. **Indexes**: برای بهینه‌سازی query ها
-5. **Triggers**: برای auto-update updated_at
-
----
-
-## 🔍 Query های نمونه
-
-### دریافت سوالات تصادفی
-```sql
-SELECT q.*, qo.*
-FROM questions q
-JOIN question_options qo ON qo.question_id = q.id
-WHERE q.category_id = 1 
-  AND q.difficulty = 'MEDIUM'
-  AND q.is_active = true
-ORDER BY RANDOM()
-LIMIT 10;
+```bash
+PGPASSWORD=4522 pg_dump -U postgres -p 5433 -h localhost quiz_game > backup.sql
 ```
 
-### Leaderboard
-```sql
-SELECT username, level, total_score, xp
-FROM users
-WHERE is_active = true
-ORDER BY total_score DESC, xp DESC
-LIMIT 100;
+## Restore
+
+```bash
+PGPASSWORD=4522 psql -U postgres -p 5433 -h localhost -d quiz_game < backup.sql
 ```
-
-### آمار کاربر
-```sql
-SELECT 
-    games_played,
-    correct_answers,
-    wrong_answers,
-    best_score,
-    accuracy_rate
-FROM user_stats
-WHERE user_id = 1 AND category_id IS NULL;
-```
-
----
-
-## 📚 مستندات بیشتر
-
-- برای جزئیات کامل: **DATABASE_SCHEMA.md**
-- برای PostgreSQL: **schema_postgresql.sql** ⭐ (توصیه می‌شود)
-- برای ویژگی‌های PostgreSQL: **POSTGRESQL_FEATURES.md**
-- برای خلاصه: **DATABASE_SUMMARY.md**
-- برای اجرای SQL پایه: **schema.sql**
-
----
-
-**نکته**: قبل از استفاده در Production، حتماً backup بگیرید و در محیط Test تست کنید.
-

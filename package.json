@@ -1,0 +1,20 @@
+{
+  "name": "quiz-game",
+  "version": "1.0.0",
+  "description": "Quiz Game - Complete Implementation",
+  "scripts": {
+    "setup:db": "node database/setup_database_alternative.js",
+    "setup:db:simple": "node database/setup_database.js",
+    "test:db": "node database/test_connection.js"
+  },
+  "keywords": [
+    "quiz",
+    "game",
+    "trivia"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "pg": "^8.11.3"
+  }
+}

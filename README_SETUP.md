@@ -36,22 +36,37 @@ npm install
 
 #### ایجاد Database
 ```bash
-createdb quiz_game
+# با استفاده از psql
+psql -U postgres -p 5433 -h localhost
+
+# سپس در psql:
+CREATE DATABASE quiz_game;
+\q
 ```
 
-یا با psql:
-```sql
-CREATE DATABASE quiz_game;
+یا با دستور مستقیم:
+```bash
+createdb -U postgres -p 5433 -h localhost quiz_game
 ```
 
 #### اجرای Schema
 ```bash
-psql quiz_game < database/schema_postgresql.sql
+psql -U postgres -p 5433 -h localhost -d quiz_game -f database/schema_postgresql.sql
+```
+
+یا با PGPASSWORD:
+```bash
+PGPASSWORD=4522 psql -U postgres -p 5433 -h localhost -d quiz_game -f database/schema_postgresql.sql
 ```
 
 #### Seed Data (اختیاری)
 ```bash
-psql quiz_game < database/seeds/initial_data.sql
+psql -U postgres -p 5433 -h localhost -d quiz_game -f database/seeds/initial_data.sql
+```
+
+یا با PGPASSWORD:
+```bash
+PGPASSWORD=4522 psql -U postgres -p 5433 -h localhost -d quiz_game -f database/seeds/initial_data.sql
 ```
 
 ### 4. تنظیم Environment Variables
@@ -63,10 +78,10 @@ PORT=3000
 API_URL=http://localhost:3000
 
 DB_HOST=localhost
-DB_PORT=5432
+DB_PORT=5433
 DB_NAME=quiz_game
 DB_USER=postgres
-DB_PASSWORD=postgres
+DB_PASSWORD=4522
 
 REDIS_HOST=localhost
 REDIS_PORT=6379

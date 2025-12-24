@@ -20,6 +20,7 @@ const config: Config = {
           700: '#0369a1',
           800: '#075985',
           900: '#0c4a6e',
+          DEFAULT: '#0284c7',
         },
         secondary: {
           50: '#faf5ff',
@@ -32,6 +33,7 @@ const config: Config = {
           700: '#7e22ce',
           800: '#6b21a8',
           900: '#581c87',
+          DEFAULT: '#9333ea',
         },
       },
       fontFamily: {
@@ -39,7 +41,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [require('@tailwindcss/forms')],
+  plugins: [],
 };
 
 export default config;
