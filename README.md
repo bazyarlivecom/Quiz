@@ -241,6 +241,20 @@
 4. **Store** - State Management
 5. **Hooks** - Custom Hooks
 
+### 🚀 Production Ready
+
+26. **[PRODUCTION_READY.md](./PRODUCTION_READY.md)** ⭐⭐⭐
+    - تنظیمات کامل Production
+    - بهینه‌سازی Performance (Database, Caching, CDN)
+    - امنیت کامل (Security Headers, Input Validation, Authentication)
+    - مقیاس‌پذیری (Load Balancing, Horizontal Scaling, Database Replication)
+    - Monitoring & Logging
+    - Deployment (Docker, CI/CD)
+    - Backup & Recovery
+    - Health Checks
+    - Environment Variables
+    - PM2 Configuration
+
 ## 🚀 شروع سریع
 
 برای شروع پیاده‌سازی، به **[QUICK_START.md](./QUICK_START.md)** مراجعه کنید.
