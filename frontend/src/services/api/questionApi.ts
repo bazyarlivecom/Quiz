@@ -55,5 +55,57 @@ export const questionApi = {
     );
     return response.data.data;
   },
+
+  getQuestionsByCategory: async (categoryId: number): Promise<Question[]> => {
+    const response = await apiClient.get<{ success: boolean; data: Question[] }>(
+      `/questions/category/${categoryId}`
+    );
+    return response.data.data;
+  },
+
+  createQuestion: async (data: {
+    categoryId: number;
+    difficulty: 'EASY' | 'MEDIUM' | 'HARD' | 'EXPERT';
+    questionText: string;
+    explanation?: string | null;
+    points: number;
+    options: Array<{
+      text: string;
+      order: number;
+      isCorrect: boolean;
+    }>;
+  }): Promise<Question> => {
+    const response = await apiClient.post<{ success: boolean; data: Question }>(
+      '/questions',
+      data
+    );
+    return response.data.data;
+  },
+
+  updateQuestion: async (id: number, data: {
+    categoryId?: number;
+    difficulty?: 'EASY' | 'MEDIUM' | 'HARD' | 'EXPERT';
+    questionText?: string;
+    explanation?: string | null;
+    points?: number;
+    options?: Array<{
+      id?: number;
+      text: string;
+      order: number;
+      isCorrect: boolean;
+    }>;
+  }): Promise<Question> => {
+    const response = await apiClient.put<{ success: boolean; data: Question }>(
+      `/questions/${id}`,
+      data
+    );
+    return response.data.data;
+  },
+
+  deleteQuestion: async (id: number, hardDelete: boolean = false): Promise<void> => {
+    await apiClient.delete<{ success: boolean }>(
+      `/questions/${id}?hardDelete=${hardDelete}`
+    );
+  },
 };
 

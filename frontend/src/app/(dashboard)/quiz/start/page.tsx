@@ -37,7 +37,7 @@ export default function StartQuizPage() {
 
       const request: StartGameRequest = {
         gameMode: mode,
-        questionsCount: 10,
+        questionsCount: 3,
         difficulty: 'MIXED',
       };
 
@@ -51,7 +51,7 @@ export default function StartQuizPage() {
         userId: user!.id,
         categoryId: request.categoryId || null,
         difficulty: request.difficulty || 'MIXED',
-        questionsCount: request.questionsCount || 10,
+        questionsCount: request.questionsCount || 3,
         status: 'ACTIVE',
         isPractice: mode === 'PRACTICE',
         gameMode: mode,
@@ -100,7 +100,7 @@ export default function StartQuizPage() {
           userId: user.id,
           categoryId: request.categoryId || null,
           difficulty: request.difficulty || 'MIXED',
-          questionsCount: request.questionsCount || 10,
+          questionsCount: request.questionsCount || 3,
           status: 'ACTIVE',
           isPractice: mode === 'PRACTICE',
           gameMode: mode,
@@ -112,20 +112,33 @@ export default function StartQuizPage() {
         
         // Check if error contains activeSessionId
         if (message.includes('already has an active game')) {
-          const errors = data?.errors || [];
-          const activeSessionError = errors.find((e: any) => e.field === 'activeSessionId' || e.activeSessionId);
-          if (activeSessionError?.message || activeSessionError?.activeSessionId) {
-            setActiveSessionId(parseInt(activeSessionError.message || activeSessionError.activeSessionId, 10));
-          } else {
-            // Try to get active game
+          // Try to extract activeSessionId from error data
+          let sessionId: number | null = null;
+          
+          // Check if activeSessionId is in errors array
+          if (data?.errors && Array.isArray(data.errors)) {
+            const activeSessionError = data.errors.find((e: any) => 
+              e.activeSessionId || e.field === 'activeSessionId'
+            );
+            if (activeSessionError?.activeSessionId) {
+              sessionId = parseInt(activeSessionError.activeSessionId, 10);
+            }
+          }
+          
+          // If not found in errors, try to get active game from API
+          if (!sessionId) {
             try {
               const activeGame = await quizApi.getActiveGame();
               if (activeGame) {
-                setActiveSessionId(activeGame.sessionId);
+                sessionId = activeGame.sessionId;
               }
             } catch {
               // Ignore error
             }
+          }
+          
+          if (sessionId) {
+            setActiveSessionId(sessionId);
           }
         }
         
@@ -154,24 +167,29 @@ export default function StartQuizPage() {
         <div className="flex items-center justify-center min-h-screen px-4">
           <div className="text-center max-w-md w-full">
             {error.includes('already has an active game') && activeSessionId ? (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-4">
-                <h3 className="text-lg font-semibold text-yellow-800 mb-2">Active Game Found</h3>
-                <p className="text-yellow-700 mb-4">{error}</p>
+              <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-6 mb-4 shadow-lg">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-3xl">⚠️</span>
+                  <h3 className="text-lg font-bold text-yellow-800">بازی فعال یافت شد</h3>
+                </div>
+                <p className="text-yellow-700 mb-4 text-right">
+                  شما یک بازی فعال دارید. می‌خواهید آن را ادامه دهید یا بازی جدیدی شروع کنید؟
+                </p>
                 
                 <div className="flex flex-col gap-3">
                   <button
                     onClick={handleResumeGame}
-                    className="btn btn-primary"
+                    className="btn btn-primary w-full"
                     disabled={abandoning}
                   >
-                    Resume Game
+                    ادامه بازی قبلی
                   </button>
                   <button
                     onClick={handleAbandonGame}
-                    className="btn btn-secondary"
+                    className="btn btn-secondary w-full"
                     disabled={abandoning}
                   >
-                    {abandoning ? 'Abandoning...' : 'Abandon & Start New Game'}
+                    {abandoning ? 'در حال رها کردن...' : 'رها کردن و شروع بازی جدید'}
                   </button>
                 </div>
               </div>
@@ -185,10 +203,10 @@ export default function StartQuizPage() {
             
             <button
               onClick={() => router.push('/dashboard')}
-              className="btn btn-outline"
+              className="btn btn-outline w-full"
               disabled={abandoning}
             >
-              Go Back to Dashboard
+              بازگشت به داشبورد
             </button>
           </div>
         </div>

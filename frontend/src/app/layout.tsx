@@ -1,12 +1,16 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Vazirmatn } from 'next/font/google';
 import '../styles/globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+const vazirmatn = Vazirmatn({ 
+  subsets: ['arabic', 'latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-vazirmatn',
+});
 
 export const metadata: Metadata = {
-  title: 'Quiz Game',
-  description: 'Test your knowledge with our quiz game',
+  title: 'بازی کویز',
+  description: 'دانش خود را با بازی کویز ما محک بزنید',
 };
 
 export default function RootLayout({
@@ -15,8 +19,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
+    <html lang="fa" dir="rtl">
+      <body className={`${vazirmatn.variable} font-sans`}>{children}</body>
     </html>
   );
 }

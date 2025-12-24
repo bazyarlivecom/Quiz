@@ -1,10 +1,12 @@
 import { Express } from 'express';
 import helmet from 'helmet';
-import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { env } from '../config/env';
 
 export const setupSecurity = (app: Express): void => {
+  // Configure helmet with CORS-friendly settings
+  const allowedOrigins = env.security.corsOrigin.split(',').map(o => o.trim());
+  
   app.use(helmet({
     contentSecurityPolicy: {
       directives: {
@@ -12,18 +14,20 @@ export const setupSecurity = (app: Express): void => {
         styleSrc: ["'self'", "'unsafe-inline'"],
         scriptSrc: ["'self'"],
         imgSrc: ["'self'", 'data:', 'https:'],
-        connectSrc: ["'self'", env.apiUrl],
+        connectSrc: ["'self'", env.apiUrl, ...allowedOrigins],
         fontSrc: ["'self'"],
         objectSrc: ["'none'"],
         mediaSrc: ["'self'"],
         frameSrc: ["'none'"],
       },
     },
-    hsts: {
+    crossOriginEmbedderPolicy: false, // Allow cross-origin requests
+    crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allow cross-origin resources
+    hsts: env.nodeEnv === 'production' ? {
       maxAge: 31536000,
       includeSubDomains: true,
       preload: true,
-    },
+    } : false, // Disable HSTS in development
     noSniff: true,
     xssFilter: true,
     referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
@@ -36,15 +40,6 @@ export const setupSecurity = (app: Express): void => {
       message: 'Too many requests from this IP, please try again later.',
       standardHeaders: true,
       legacyHeaders: false,
-    })
-  );
-
-  app.use(
-    cors({
-      origin: env.security.corsOrigin,
-      credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
     })
   );
 };

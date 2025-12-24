@@ -47,6 +47,12 @@ export default function QuizPage() {
 
   const loadQuestion = async () => {
     try {
+      // Reset all state before loading new question
+      setSelectedOptionId(null);
+      setAnswerResult(null);
+      setIsSubmitting(false);
+      setError(null);
+      
       const question = await quizApi.getCurrentQuestion(sessionId);
       
       // If question is null, the game is finished
@@ -63,8 +69,6 @@ export default function QuizPage() {
       }
       
       setQuestion(question);
-      setSelectedOptionId(null);
-      setAnswerResult(null);
       
       // Only set timer if timeLimit is not null
       if (question.timeLimit !== null && question.timeLimit !== undefined) {
@@ -77,6 +81,7 @@ export default function QuizPage() {
       console.error('Failed to load question:', error);
       const errorMessage = getErrorMessage(error);
       setError(errorMessage);
+      setIsSubmitting(false);
       
       // If there's an error, try to end the game
       try {
@@ -114,20 +119,14 @@ export default function QuizPage() {
 
       setAnswerResult(result);
       addAnswer(result);
-
-      setTimeout(() => {
-        if (currentQuestion.questionNumber >= currentQuestion.totalQuestions) {
-          endGame();
-        } else {
-          loadQuestion();
-        }
-      }, 2000);
+      setIsSubmitting(false);
     } catch (error) {
       console.error('Failed to submit answer:', error);
       setError(getErrorMessage(error));
       // Reset to allow retry
       setIsSubmitting(false);
       setSelectedOptionId(null);
+      setAnswerResult(null);
     }
   };
 
@@ -151,18 +150,22 @@ export default function QuizPage() {
 
       setAnswerResult(result);
       addAnswer(result);
-
-      setTimeout(() => {
-        if (currentQuestion.questionNumber >= currentQuestion.totalQuestions) {
-          endGame();
-        } else {
-          loadQuestion();
-        }
-      }, 2000);
+      setIsSubmitting(false);
     } catch (error) {
       console.error('Failed to handle timeout:', error);
       setError(getErrorMessage(error));
       setIsSubmitting(false);
+      setAnswerResult(null);
+    }
+  };
+
+  const handleNextQuestion = () => {
+    if (!currentQuestion) return;
+    
+    if (currentQuestion.questionNumber >= currentQuestion.totalQuestions) {
+      endGame();
+    } else {
+      loadQuestion();
     }
   };
 
@@ -200,8 +203,9 @@ export default function QuizPage() {
             />
           )}
           <div className="flex justify-between items-center mb-6">
-            <div>
-              <h2 className="text-xl font-bold">Score: {score}</h2>
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 px-6 py-3 rounded-lg border-2 border-blue-200">
+              <p className="text-sm text-gray-600 mb-1">امتیاز</p>
+              <h2 className="text-2xl font-bold text-blue-700">{score.toLocaleString('fa-IR')}</h2>
             </div>
             {currentQuestion && (
               <QuizTimer
@@ -219,17 +223,34 @@ export default function QuizPage() {
           />
 
           {answerResult && (
-            <div className="mt-6 card p-4">
-              <p className={`text-lg font-semibold ${answerResult.isCorrect ? 'text-green-600' : 'text-red-600'}`}>
-                {answerResult.isCorrect ? 'Correct!' : 'Incorrect'}
-              </p>
+            <div className={`mt-6 card p-6 border-2 ${
+              answerResult.isCorrect 
+                ? 'bg-green-50 border-green-300' 
+                : 'bg-red-50 border-red-300'
+            }`}>
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-3xl">
+                  {answerResult.isCorrect ? '✅' : '❌'}
+                </span>
+                <p className={`text-xl font-bold ${
+                  answerResult.isCorrect ? 'text-green-700' : 'text-red-700'
+                }`}>
+                  {answerResult.isCorrect ? 'پاسخ صحیح!' : 'پاسخ غلط'}
+                </p>
+              </div>
               {answerResult.explanation && (
-                <p className="mt-2 text-gray-600">{answerResult.explanation}</p>
+                <div className="mt-3 p-3 bg-white rounded-lg border border-gray-200">
+                  <p className="text-sm text-gray-600 mb-1">توضیحات:</p>
+                  <p className="text-gray-800">{answerResult.explanation}</p>
+                </div>
               )}
               {!answerResult.isPractice && (
-                <p className="mt-2 text-sm text-gray-500">
-                  Points earned: {answerResult.pointsEarned}
-                </p>
+                <div className="mt-3 flex items-center gap-2">
+                  <span className="text-sm text-gray-600">امتیاز کسب شده:</span>
+                  <span className="text-lg font-bold text-blue-700">
+                    +{answerResult.pointsEarned}
+                  </span>
+                </div>
               )}
             </div>
           )}
@@ -239,10 +260,46 @@ export default function QuizPage() {
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="btn btn-primary"
+                className="btn btn-primary px-8 py-3 text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all"
               >
-                {isSubmitting ? 'Submitting...' : 'Submit Answer'}
+                {isSubmitting ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    در حال ارسال...
+                  </span>
+                ) : (
+                  'ثبت پاسخ'
+                )}
               </button>
+            </div>
+          )}
+
+          {answerResult && (
+            <div className="mt-6 text-center">
+              {currentQuestion && currentQuestion.questionNumber >= currentQuestion.totalQuestions ? (
+                <button
+                  onClick={handleNextQuestion}
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-3 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all flex items-center gap-2 mx-auto"
+                >
+                  <span>مشاهده نتایج</span>
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </button>
+              ) : (
+                <button
+                  onClick={handleNextQuestion}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all flex items-center gap-2 mx-auto"
+                >
+                  <span>سوال بعدی</span>
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </button>
+              )}
             </div>
           )}
         </div>

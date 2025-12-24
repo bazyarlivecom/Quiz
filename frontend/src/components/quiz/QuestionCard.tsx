@@ -16,33 +16,41 @@ export default function QuestionCard({
   disabled = false,
 }: QuestionCardProps) {
   return (
-    <div className="card p-6 max-w-2xl mx-auto">
-      <div className="mb-4">
-        <span className="text-sm text-gray-500">
-          Question {question.questionNumber} of {question.totalQuestions}
+    <div className="card p-6 max-w-2xl mx-auto bg-white shadow-lg">
+      <div className="mb-4 flex items-center justify-between">
+        <span className="text-sm text-gray-600 bg-blue-50 px-3 py-1 rounded-full">
+          سوال {question.questionNumber} از {question.totalQuestions}
         </span>
       </div>
 
-      <h2 className="text-2xl font-bold mb-6">{question.questionText}</h2>
+      <h2 className="text-2xl font-bold mb-6 text-gray-900 text-right leading-relaxed">
+        {question.questionText}
+      </h2>
 
       <div className="space-y-3">
         {question.options.map((option) => {
           const isSelected = selectedOptionId === option.id;
-          const optionLabel = String.fromCharCode(64 + option.order);
+          const optionLabels = ['الف', 'ب', 'ج', 'د', 'ه', 'و'];
+          const optionLabel = optionLabels[option.order - 1] || option.order;
 
           return (
             <button
               key={option.id}
               onClick={() => !disabled && onSelectOption(option.id)}
               disabled={disabled}
-              className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+              className={`w-full text-right p-4 rounded-lg border-2 transition-all ${
                 isSelected
-                  ? 'border-primary bg-primary/10'
-                  : 'border-gray-200 hover:border-primary/50'
+                  ? 'border-blue-500 bg-blue-50 shadow-md'
+                  : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50/50'
               } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
             >
-              <span className="font-semibold mr-2">{optionLabel}.</span>
-              {option.text}
+              <div className="flex items-center gap-3">
+                <span className="font-bold text-lg text-blue-600 min-w-[30px]">{optionLabel})</span>
+                <span className="flex-1 text-gray-800">{option.text}</span>
+                {isSelected && (
+                  <span className="text-blue-600 text-xl">✓</span>
+                )}
+              </div>
             </button>
           );
         })}

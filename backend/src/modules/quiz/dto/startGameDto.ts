@@ -20,9 +20,9 @@ export const startGameSchema = z.object({
       questionsCount: z
         .number()
         .int('Questions count must be an integer')
-        .min(5, 'Minimum 5 questions required')
+        .min(1, 'Minimum 1 question required')
         .max(50, 'Maximum 50 questions allowed')
-        .default(10),
+        .default(3),
       opponentUserId: z
         .number()
         .int('Opponent user ID must be an integer')

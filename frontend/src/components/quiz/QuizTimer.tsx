@@ -8,8 +8,8 @@ interface QuizTimerProps {
 export default function QuizTimer({ timeRemaining, totalTime }: QuizTimerProps) {
   if (timeRemaining === null) {
     return (
-      <div className="flex items-center justify-center">
-        <span className="text-sm text-gray-500">Practice Mode - No Timer</span>
+      <div className="flex items-center justify-center bg-green-50 px-4 py-2 rounded-lg border border-green-200">
+        <span className="text-sm text-green-700 font-semibold">حالت تمرین - بدون محدودیت زمان</span>
       </div>
     );
   }

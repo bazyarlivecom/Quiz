@@ -15,6 +15,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@next/font": "^14.2.15",
     "pg": "^8.11.3"
   }
 }

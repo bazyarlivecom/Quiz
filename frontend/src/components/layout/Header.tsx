@@ -20,7 +20,7 @@ export default function Header() {
               onClick={() => router.push('/dashboard')}
               className="text-xl font-bold text-primary"
             >
-              Quiz Game
+              بازی کویز
             </button>
           </div>
 
@@ -29,29 +29,35 @@ export default function Header() {
               onClick={() => router.push('/dashboard')}
               className="text-gray-700 hover:text-primary"
             >
-              Dashboard
+              داشبورد
             </button>
             <button
               onClick={() => router.push('/leaderboard')}
               className="text-gray-700 hover:text-primary"
             >
-              Leaderboard
+              جدول رده‌بندی
             </button>
             <button
               onClick={() => router.push('/profile')}
               className="text-gray-700 hover:text-primary"
             >
-              Profile
+              پروفایل
+            </button>
+            <button
+              onClick={() => router.push('/admin/questions')}
+              className="text-gray-700 hover:text-primary"
+            >
+              مدیریت سوالات
             </button>
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">{user?.username}</span>
-              <span className="text-sm text-gray-400">Lv.{user?.level || 1}</span>
+              <span className="text-sm text-gray-400">سطح {user?.level || 1}</span>
             </div>
             <button
               onClick={logout}
               className="btn btn-secondary text-sm"
             >
-              Logout
+              خروج
             </button>
           </nav>
         </div>

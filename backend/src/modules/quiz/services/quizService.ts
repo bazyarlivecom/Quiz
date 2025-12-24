@@ -66,8 +66,15 @@ export class QuizService {
       throw new NotFoundError('Session not found or access denied');
     }
 
-    if (session.status !== 'ACTIVE') {
-      throw new ConflictError('Session is not active');
+    // Allow abandoning COMPLETED sessions as well (in case user wants to start a new game)
+    // Only prevent abandoning if already ABANDONED or TIMED_OUT
+    if (session.status === 'ABANDONED' || session.status === 'TIMED_OUT') {
+      throw new ConflictError(`Session is already ${session.status.toLowerCase()}`);
+    }
+
+    // If session is already COMPLETED, just return success (no need to update)
+    if (session.status === 'COMPLETED') {
+      return;
     }
 
     await this.sessionRepository.update(sessionId, {
@@ -80,10 +87,33 @@ export class QuizService {
     if (dto.gameMode !== 'PRACTICE') {
       const activeGames = await this.sessionRepository.findByUserId(userId, 'ACTIVE');
       if (activeGames.length > 0) {
-        const activeGame = activeGames[0];
-        const error = new ConflictError('User already has an active game');
-        (error as any).activeSessionId = activeGame.id;
-        throw error;
+        // Check if any active games are older than 24 hours and auto-abandon them
+        const now = new Date();
+        const abandonedSessions: number[] = [];
+        
+        for (const game of activeGames) {
+          const gameStartTime = new Date(game.started_at);
+          const hoursSinceStart = (now.getTime() - gameStartTime.getTime()) / (1000 * 60 * 60);
+          
+          // Auto-abandon games older than 24 hours
+          if (hoursSinceStart > 24) {
+            await this.sessionRepository.update(game.id, {
+              status: 'ABANDONED',
+              endedAt: now,
+            });
+            abandonedSessions.push(game.id);
+          }
+        }
+        
+        // Filter out abandoned sessions
+        const stillActiveGames = activeGames.filter(g => !abandonedSessions.includes(g.id));
+        
+        if (stillActiveGames.length > 0) {
+          const activeGame = stillActiveGames[0];
+          const error = new ConflictError('User already has an active game');
+          (error as any).activeSessionId = activeGame.id;
+          throw error;
+        }
       }
     }
 
@@ -290,8 +320,31 @@ export class QuizService {
       throw new NotFoundError('Session not found or access denied');
     }
 
+    // If session is already completed, return the existing result
+    if (session.status === 'COMPLETED') {
+      const answers = await this.answerRepository.getMatchAnswers(sessionId);
+      const stats = this.calculateFinalStats(answers);
+      const isPractice = session.is_practice || false;
+      const timeSpent = session.time_spent || Math.floor(
+        (new Date().getTime() - new Date(session.started_at).getTime()) / 1000
+      );
+
+      return {
+        sessionId,
+        userId,
+        totalScore: isPractice ? 0 : stats.totalScore,
+        correctAnswers: stats.correctAnswers,
+        wrongAnswers: stats.wrongAnswers,
+        accuracy: stats.accuracy,
+        timeSpent,
+        newAchievements: [],
+        isPractice,
+      };
+    }
+
+    // Only allow ending ACTIVE sessions
     if (session.status !== 'ACTIVE') {
-      throw new ConflictError('Session is not active');
+      throw new ConflictError(`Cannot end session with status: ${session.status}`);
     }
 
     const answers = await this.answerRepository.getMatchAnswers(sessionId);
@@ -310,6 +363,7 @@ export class QuizService {
       ]);
     }
 
+    // Update session status to COMPLETED
     await this.sessionRepository.update(sessionId, {
       status: 'COMPLETED',
       endedAt: new Date(),
