@@ -1,6 +1,23 @@
-# 🎮 Quiz Game - طراحی فنی و معماری
+# 🎮 Quiz Game - بازی Quiz کامل
 
-پروژه طراحی و معماری یک بازی Quiz/Trivia مشابه Quiz Of Kings با معماری Production-ready.
+پروژه کامل یک بازی Quiz/Trivia مشابه Quiz Of Kings با معماری Production-ready.
+
+## 🚀 شروع سریع
+
+برای شروع سریع، به [README_SETUP.md](./README_SETUP.md) مراجعه کنید.
+
+```bash
+# نصب dependencies
+cd backend && npm install
+cd ../frontend && npm install
+
+# تنظیم database
+psql quiz_game < database/schema_postgresql.sql
+
+# اجرا
+cd backend && npm run dev
+cd frontend && npm run dev
+```
 
 ## 📚 فهرست اسناد
 

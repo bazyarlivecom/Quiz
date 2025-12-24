@@ -17,9 +17,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
 setupSecurity(app);
 
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
+import { healthCheck } from './infrastructure/monitoring/healthCheck';
+
+app.get('/health', healthCheck);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
