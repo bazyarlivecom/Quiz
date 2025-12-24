@@ -7,20 +7,26 @@ export interface JWTPayload {
 }
 
 export const generateToken = (payload: JWTPayload): string => {
+  const expiresIn = env.jwt.expiresIn;
   return jwt.sign(payload, env.jwt.secret, {
-    expiresIn: env.jwt.expiresIn,
-  });
+    expiresIn: typeof expiresIn === 'string' ? expiresIn : String(expiresIn),
+  } as jwt.SignOptions);
 };
 
 export const generateRefreshToken = (payload: JWTPayload): string => {
+  const expiresIn = env.jwt.refreshExpiresIn;
   return jwt.sign(payload, env.jwt.refreshSecret, {
-    expiresIn: env.jwt.refreshExpiresIn,
-  });
+    expiresIn: typeof expiresIn === 'string' ? expiresIn : String(expiresIn),
+  } as jwt.SignOptions);
 };
 
 export const verifyToken = (token: string): JWTPayload => {
   try {
-    return jwt.verify(token, env.jwt.secret) as JWTPayload;
+    const decoded = jwt.verify(token, env.jwt.secret);
+    if (typeof decoded === 'string' || !decoded) {
+      throw new Error('Invalid token payload');
+    }
+    return decoded as JWTPayload;
   } catch (error) {
     throw new Error('Invalid or expired token');
   }
@@ -28,7 +34,11 @@ export const verifyToken = (token: string): JWTPayload => {
 
 export const verifyRefreshToken = (token: string): JWTPayload => {
   try {
-    return jwt.verify(token, env.jwt.refreshSecret) as JWTPayload;
+    const decoded = jwt.verify(token, env.jwt.refreshSecret);
+    if (typeof decoded === 'string' || !decoded) {
+      throw new Error('Invalid token payload');
+    }
+    return decoded as JWTPayload;
   } catch (error) {
     throw new Error('Invalid or expired refresh token');
   }
@@ -36,9 +46,12 @@ export const verifyRefreshToken = (token: string): JWTPayload => {
 
 export const decodeToken = (token: string): JWTPayload | null => {
   try {
-    return jwt.decode(token) as JWTPayload;
+    const decoded = jwt.decode(token);
+    if (typeof decoded === 'string' || !decoded) {
+      return null;
+    }
+    return decoded as JWTPayload;
   } catch (error) {
     return null;
   }
 };
-

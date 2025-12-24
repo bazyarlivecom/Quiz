@@ -18,8 +18,7 @@ export const getRandomQuestionsSchema = z.object({
       .refine((val) => val >= 1 && val <= 50, {
         message: 'Count must be between 1 and 50',
       })
-      .default('10')
-      .transform((val) => parseInt(val, 10)),
+      .default('10'),
   }),
 });
 

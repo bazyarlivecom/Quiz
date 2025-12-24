@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { QuizService } from '../services/quizService';
 import { sendSuccess } from '../../../shared/utils/response';
 import { AuthRequest } from '../../../shared/middleware/auth';

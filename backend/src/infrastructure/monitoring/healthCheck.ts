@@ -23,11 +23,15 @@ export const healthCheck = async (req: Request, res: Response): Promise<void> =>
 
   try {
     const redis = await getRedisClient();
-    await redis.ping();
-    health.checks.redis = 'ok';
+    if (redis) {
+      await redis.ping();
+      health.checks.redis = 'ok';
+    } else {
+      health.checks.redis = 'not_available';
+    }
   } catch (error) {
     health.checks.redis = 'error';
-    health.status = 'error';
+    // Don't mark overall status as error if Redis fails
   }
 
   const statusCode = health.status === 'ok' ? 200 : 503;

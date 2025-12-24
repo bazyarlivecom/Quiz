@@ -9,8 +9,16 @@ const startServer = async (): Promise<void> => {
     await db.query('SELECT NOW()');
     logger.info('Database connected successfully');
 
-    await getRedisClient();
-    logger.info('Redis connected successfully');
+    try {
+      const redis = await getRedisClient();
+      if (redis) {
+        logger.info('Redis connected successfully');
+      } else {
+        logger.warn('Redis not available, continuing without cache');
+      }
+    } catch (error) {
+      logger.warn('Redis connection failed, continuing without cache:', error);
+    }
 
     app.listen(env.port, () => {
       logger.info(`Server running on port ${env.port} in ${env.nodeEnv} mode`);

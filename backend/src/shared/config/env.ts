@@ -43,5 +43,5 @@ export const env = {
   logging: {
     level: process.env.LOG_LEVEL || 'info',
   },
-} as const;
+};
 
