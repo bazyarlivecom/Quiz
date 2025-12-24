@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import ProtectedRoute from '../../../components/layout/ProtectedRoute';
 import { quizApi } from '../../../services/api/quizApi';
 import { GameResult } from '../../../types/quiz.types';
+import { ErrorMessage } from '../../../components/common';
+import { getErrorMessage } from '../../../utils/errorHandler';
 
 export default function ResultsPage() {
   const router = useRouter();
@@ -12,6 +14,7 @@ export default function ResultsPage() {
   const sessionId = parseInt(searchParams.get('sessionId') || '0', 10);
   const [result, setResult] = useState<GameResult | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (sessionId) {
@@ -23,8 +26,10 @@ export default function ResultsPage() {
     try {
       const data = await quizApi.endGame(sessionId);
       setResult(data);
+      setError(null);
     } catch (error) {
       console.error('Failed to load results:', error);
+      setError(getErrorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -40,11 +45,32 @@ export default function ResultsPage() {
     );
   }
 
-  if (!result) {
+  if (!result && !error) {
     return (
       <ProtectedRoute>
         <div className="flex items-center justify-center min-h-screen">
           <p>No results found</p>
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
+  if (error && !result) {
+    return (
+      <ProtectedRoute>
+        <div className="flex items-center justify-center min-h-screen px-4">
+          <div className="max-w-md w-full">
+            <ErrorMessage 
+              message={error} 
+              className="mb-4"
+            />
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="btn btn-primary w-full"
+            >
+              Go Back to Dashboard
+            </button>
+          </div>
         </div>
       </ProtectedRoute>
     );

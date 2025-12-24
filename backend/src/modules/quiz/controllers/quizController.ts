@@ -64,5 +64,36 @@ export class QuizController {
       next(error);
     }
   };
+
+  getActiveGame = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      if (!req.userId) {
+        throw new Error('User ID not found');
+      }
+
+      const activeGame = await this.quizService.getActiveGame(req.userId);
+      if (activeGame) {
+        sendSuccess(res, { sessionId: activeGame.id, status: activeGame.status }, 'Active game found');
+      } else {
+        sendSuccess(res, null, 'No active game');
+      }
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  abandonGame = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      if (!req.userId) {
+        throw new Error('User ID not found');
+      }
+
+      const sessionId = parseInt(req.params.sessionId, 10);
+      await this.quizService.abandonGame(sessionId, req.userId);
+      sendSuccess(res, null, 'Game abandoned successfully');
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 

@@ -6,7 +6,7 @@ const readline = require('readline');
 // تنظیمات دیتابیس
 const config = {
   host: 'localhost',
-  port: 5433,
+  port: 5432,
   user: 'postgres',
   password: '4522',
   database: 'postgres',

@@ -6,20 +6,25 @@ import ProtectedRoute from '../../../components/layout/ProtectedRoute';
 import { useAuth } from '../../../hooks/useAuth';
 import { questionApi } from '../../../services/api/questionApi';
 import { Category } from '../../../services/api/questionApi';
+import { ErrorMessage } from '../../../components/common';
+import { getErrorMessage } from '../../../utils/errorHandler';
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadCategories = async () => {
+      setError(null);
       try {
         const data = await questionApi.getCategories();
         setCategories(data);
       } catch (error) {
         console.error('Failed to load categories:', error);
+        setError(getErrorMessage(error));
       } finally {
         setLoading(false);
       }
@@ -82,6 +87,14 @@ export default function DashboardPage() {
             </button>
           </div>
 
+          {error && (
+            <ErrorMessage 
+              message={error} 
+              className="mb-4"
+              onDismiss={() => setError(null)}
+            />
+          )}
+
           {!loading && categories.length > 0 && (
             <div>
               <h2 className="text-2xl font-bold mb-4">Categories</h2>
@@ -96,6 +109,12 @@ export default function DashboardPage() {
                   </button>
                 ))}
               </div>
+            </div>
+          )}
+
+          {!loading && categories.length === 0 && !error && (
+            <div className="card p-8 text-center">
+              <p className="text-gray-500">No categories available.</p>
             </div>
           )}
         </div>

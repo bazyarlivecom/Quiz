@@ -11,10 +11,38 @@ export const registerSchema = z.object({
     password: z
       .string()
       .min(8, 'Password must be at least 8 characters')
-      .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
-      ),
+      .superRefine((password, ctx) => {
+        const missingRequirements: string[] = [];
+
+        // Check for lowercase letter
+        if (!/[a-z]/.test(password)) {
+          missingRequirements.push('lowercase letter');
+        }
+
+        // Check for uppercase letter
+        if (!/[A-Z]/.test(password)) {
+          missingRequirements.push('uppercase letter');
+        }
+
+        // Check for number
+        if (!/\d/.test(password)) {
+          missingRequirements.push('number');
+        }
+
+        // Check for special character
+        if (!/[@$!%*?&]/.test(password)) {
+          missingRequirements.push('special character (@, $, !, %, *, ?, &)');
+        }
+
+        // If there are missing requirements, add a single issue with all of them
+        if (missingRequirements.length > 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Password must contain at least one: ${missingRequirements.join(', ')}`,
+            path: ['password'],
+          });
+        }
+      }),
   }),
 });
 

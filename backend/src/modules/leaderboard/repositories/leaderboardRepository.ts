@@ -29,7 +29,7 @@ export class LeaderboardRepository {
       username: row.username,
       totalScore: row.total_score,
       level: row.level,
-      rank: parseInt(row.rank, 10),
+      rank: Number(row.rank),
     }));
   }
 
@@ -51,7 +51,7 @@ export class LeaderboardRepository {
       return null;
     }
 
-    return parseInt(result.rows[0].rank, 10);
+    return Number(result.rows[0].rank);
   }
 
   async getCategoryTopUsers(categoryId: number, limit: number = 100): Promise<LeaderboardEntry[]> {
@@ -76,9 +76,9 @@ export class LeaderboardRepository {
     return result.rows.map((row) => ({
       userId: row.user_id,
       username: row.username,
-      totalScore: parseInt(row.total_score, 10),
+      totalScore: Number(row.total_score) || 0,
       level: row.level,
-      rank: parseInt(row.rank, 10),
+      rank: Number(row.rank),
     }));
   }
 
@@ -104,9 +104,9 @@ export class LeaderboardRepository {
     return result.rows.map((row) => ({
       userId: row.user_id,
       username: row.username,
-      totalScore: parseInt(row.total_score, 10),
+      totalScore: Number(row.total_score) || 0,
       level: row.level,
-      rank: parseInt(row.rank, 10),
+      rank: Number(row.rank),
     }));
   }
 }

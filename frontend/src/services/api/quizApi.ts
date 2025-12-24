@@ -58,8 +58,8 @@ export const quizApi = {
     return response.data.data;
   },
 
-  getCurrentQuestion: async (sessionId: number): Promise<CurrentQuestion> => {
-    const response = await apiClient.get<{ success: boolean; data: CurrentQuestion }>(
+  getCurrentQuestion: async (sessionId: number): Promise<CurrentQuestion | null> => {
+    const response = await apiClient.get<{ success: boolean; data: CurrentQuestion | null }>(
       `/quiz/${sessionId}/current-question`
     );
     return response.data.data;
@@ -78,6 +78,17 @@ export const quizApi = {
       `/quiz/${sessionId}/end`
     );
     return response.data.data;
+  },
+
+  getActiveGame: async (): Promise<{ sessionId: number; status: string } | null> => {
+    const response = await apiClient.get<{ success: boolean; data: { sessionId: number; status: string } | null }>(
+      '/quiz/active'
+    );
+    return response.data.data;
+  },
+
+  abandonGame: async (sessionId: number): Promise<void> => {
+    await apiClient.post<{ success: boolean }>(`/quiz/${sessionId}/abandon`);
   },
 };
 

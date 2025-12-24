@@ -9,12 +9,14 @@ export const submitAnswerSchema = z.object({
     selectedOptionId: z
       .number()
       .int('Option ID must be an integer')
-      .positive('Option ID must be positive'),
+      .refine((val) => val > 0 || val === -1, {
+        message: 'Option ID must be positive or -1 for timeout',
+      }),
     timeTaken: z
       .number()
       .int('Time taken must be an integer')
       .min(0, 'Time taken cannot be negative')
-      .max(35, 'Time taken exceeds maximum allowed time'),
+      .max(120, 'Time taken exceeds maximum allowed time'),
   }),
 });
 

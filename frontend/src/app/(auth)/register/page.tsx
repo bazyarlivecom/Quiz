@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../hooks/useAuth';
+import { ErrorMessage, FieldError } from '../../../components/common';
+import { extractError } from '../../../utils/errorHandler';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -13,13 +15,16 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setFieldErrors({});
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
+      setFieldErrors({ confirmPassword: 'Passwords do not match' });
       return;
     }
 
@@ -29,7 +34,9 @@ export default function RegisterPage() {
       await register(username, email, password);
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed');
+      const { message, fieldErrors: extractedErrors } = extractError(err);
+      setError(message);
+      setFieldErrors(extractedErrors);
     } finally {
       setLoading(false);
     }
@@ -44,11 +51,10 @@ export default function RegisterPage() {
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
-          )}
+          <ErrorMessage 
+            message={error || ''} 
+            onDismiss={() => setError(null)}
+          />
           <div className="rounded-md shadow-sm space-y-4">
             <div>
               <label htmlFor="username" className="sr-only">
@@ -59,11 +65,17 @@ export default function RegisterPage() {
                 name="username"
                 type="text"
                 required
-                className="input w-full"
+                className={`input w-full ${fieldErrors.username ? 'border-red-500' : ''}`}
                 placeholder="Username"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  if (fieldErrors.username) {
+                    setFieldErrors({ ...fieldErrors, username: '' });
+                  }
+                }}
               />
+              <FieldError error={fieldErrors.username} />
             </div>
             <div>
               <label htmlFor="email" className="sr-only">
@@ -75,11 +87,17 @@ export default function RegisterPage() {
                 type="email"
                 autoComplete="email"
                 required
-                className="input w-full"
+                className={`input w-full ${fieldErrors.email ? 'border-red-500' : ''}`}
                 placeholder="Email address"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (fieldErrors.email) {
+                    setFieldErrors({ ...fieldErrors, email: '' });
+                  }
+                }}
               />
+              <FieldError error={fieldErrors.email} />
             </div>
             <div>
               <label htmlFor="password" className="sr-only">
@@ -91,11 +109,22 @@ export default function RegisterPage() {
                 type="password"
                 autoComplete="new-password"
                 required
-                className="input w-full"
+                className={`input w-full ${fieldErrors.password ? 'border-red-500' : ''}`}
                 placeholder="Password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (fieldErrors.password) {
+                    setFieldErrors({ ...fieldErrors, password: '' });
+                  }
+                }}
               />
+              <FieldError error={fieldErrors.password} />
+              {!fieldErrors.password && (
+                <p className="mt-1 text-xs text-gray-500">
+                  Password must be at least 8 characters and contain: uppercase letter, lowercase letter, number, and special character (@, $, !, %, *, ?, &)
+                </p>
+              )}
             </div>
             <div>
               <label htmlFor="confirmPassword" className="sr-only">
@@ -107,11 +136,17 @@ export default function RegisterPage() {
                 type="password"
                 autoComplete="new-password"
                 required
-                className="input w-full"
+                className={`input w-full ${fieldErrors.confirmPassword ? 'border-red-500' : ''}`}
                 placeholder="Confirm Password"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  if (fieldErrors.confirmPassword) {
+                    setFieldErrors({ ...fieldErrors, confirmPassword: '' });
+                  }
+                }}
               />
+              <FieldError error={fieldErrors.confirmPassword} />
             </div>
           </div>
 

@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../hooks/useAuth';
+import { ErrorMessage, FieldError } from '../../../components/common';
+import { extractError } from '../../../utils/errorHandler';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,17 +13,21 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setFieldErrors({});
     setLoading(true);
 
     try {
       await login(email, password);
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed');
+      const { message, fieldErrors: extractedErrors } = extractError(err);
+      setError(message);
+      setFieldErrors(extractedErrors);
     } finally {
       setLoading(false);
     }
@@ -36,11 +42,10 @@ export default function LoginPage() {
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
-          )}
+          <ErrorMessage 
+            message={error || ''} 
+            onDismiss={() => setError(null)}
+          />
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email" className="sr-only">
@@ -52,11 +57,17 @@ export default function LoginPage() {
                 type="email"
                 autoComplete="email"
                 required
-                className="input relative block w-full rounded-t-md border-gray-300"
+                className={`input relative block w-full rounded-t-md ${fieldErrors.email ? 'border-red-500' : 'border-gray-300'}`}
                 placeholder="Email address"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (fieldErrors.email) {
+                    setFieldErrors({ ...fieldErrors, email: '' });
+                  }
+                }}
               />
+              <FieldError error={fieldErrors.email} className="px-3" />
             </div>
             <div>
               <label htmlFor="password" className="sr-only">
@@ -68,11 +79,17 @@ export default function LoginPage() {
                 type="password"
                 autoComplete="current-password"
                 required
-                className="input relative block w-full rounded-b-md border-gray-300"
+                className={`input relative block w-full rounded-b-md ${fieldErrors.password ? 'border-red-500' : 'border-gray-300'}`}
                 placeholder="Password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (fieldErrors.password) {
+                    setFieldErrors({ ...fieldErrors, password: '' });
+                  }
+                }}
               />
+              <FieldError error={fieldErrors.password} className="px-3" />
             </div>
           </div>
 

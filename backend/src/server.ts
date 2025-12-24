@@ -6,6 +6,7 @@ import { logger } from './shared/utils/logger';
 
 const startServer = async (): Promise<void> => {
   try {
+    logger.info(`Attempting to connect to database: ${env.database.host}:${env.database.port}/${env.database.name}`);
     await db.query('SELECT NOW()');
     logger.info('Database connected successfully');
 

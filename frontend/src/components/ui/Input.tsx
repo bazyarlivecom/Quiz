@@ -1,5 +1,6 @@
 import React from 'react';
 import { classNames } from '../../utils/helpers';
+import { FieldError } from '../common';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -27,9 +28,7 @@ export const Input: React.FC<InputProps> = ({
         )}
         {...props}
       />
-      {error && (
-        <p className="mt-1 text-sm text-red-600">{error}</p>
-      )}
+      <FieldError error={error} />
     </div>
   );
 };

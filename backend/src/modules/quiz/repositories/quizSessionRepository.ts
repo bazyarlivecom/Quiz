@@ -85,6 +85,21 @@ export class QuizSessionRepository {
       timeSpent?: number;
     }
   ): Promise<QuizSession> {
+    // If updating answers, validate constraint first
+    if (updates.correctAnswers !== undefined || updates.wrongAnswers !== undefined) {
+      const currentSession = await this.findById(id);
+      if (currentSession) {
+        const currentCorrect = currentSession.correct_answers || 0;
+        const currentWrong = currentSession.wrong_answers || 0;
+        const newCorrect = currentCorrect + (updates.correctAnswers || 0);
+        const newWrong = currentWrong + (updates.wrongAnswers || 0);
+        
+        if (newCorrect + newWrong > currentSession.questions_count) {
+          throw new Error(`Cannot update: correct_answers (${newCorrect}) + wrong_answers (${newWrong}) exceeds questions_count (${currentSession.questions_count})`);
+        }
+      }
+    }
+
     const fields: string[] = [];
     const values: any[] = [];
     let paramIndex = 1;

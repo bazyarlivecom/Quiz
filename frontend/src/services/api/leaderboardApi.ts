@@ -31,7 +31,7 @@ export const leaderboardApi = {
   },
 
   getUserRank: async (userId: number): Promise<{ userId: number; rank: number | null }> => {
-    const response = await apiClient.get<{ success: boolean; data: { userId: number; rank: number | null } } }>(
+    const response = await apiClient.get<{ success: boolean; data: { userId: number; rank: number | null } }>(
       `/leaderboard/user/${userId}/rank`
     );
     return response.data.data;

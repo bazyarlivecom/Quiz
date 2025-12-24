@@ -10,6 +10,8 @@ import { useTimer } from '../../../../hooks/useTimer';
 import QuestionCard from '../../../../components/quiz/QuestionCard';
 import QuizTimer from '../../../../components/quiz/QuizTimer';
 import { Question, AnswerResult } from '../../../../types/quiz.types';
+import { ErrorMessage } from '../../../../components/common';
+import { getErrorMessage } from '../../../../utils/errorHandler';
 
 export default function QuizPage() {
   const router = useRouter();
@@ -21,6 +23,7 @@ export default function QuizPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [answerResult, setAnswerResult] = useState<AnswerResult | null>(null);
   const [startTime, setStartTime] = useState<number>(Date.now());
+  const [error, setError] = useState<string | null>(null);
 
   const { timeRemaining, start, stop, reset: resetTimer } = useTimer(
     currentQuestion?.timeLimit || null,
@@ -34,21 +37,37 @@ export default function QuizPage() {
   }, [sessionId]);
 
   useEffect(() => {
-    if (currentQuestion && currentQuestion.timeLimit !== null) {
+    if (currentQuestion && currentQuestion.timeLimit !== null && currentQuestion.timeLimit !== undefined) {
       setTimeRemaining(currentQuestion.timeLimit);
       resetTimer(currentQuestion.timeLimit);
       start();
       setStartTime(Date.now());
     }
-  }, [currentQuestion]);
+  }, [currentQuestion, setTimeRemaining, resetTimer, start]);
 
   const loadQuestion = async () => {
     try {
       const question = await quizApi.getCurrentQuestion(sessionId);
+      
+      // If question is null, the game is finished
+      if (!question || question === null) {
+        await endGame();
+        return;
+      }
+      
+      // Validate question has required properties
+      if (!question.questionId || !question.questionText || !question.options) {
+        console.error('Invalid question data received:', question);
+        await endGame();
+        return;
+      }
+      
       setQuestion(question);
       setSelectedOptionId(null);
       setAnswerResult(null);
-      if (question.timeLimit !== null) {
+      
+      // Only set timer if timeLimit is not null
+      if (question.timeLimit !== null && question.timeLimit !== undefined) {
         setTimeRemaining(question.timeLimit);
         resetTimer(question.timeLimit);
         start();
@@ -56,6 +75,16 @@ export default function QuizPage() {
       }
     } catch (error) {
       console.error('Failed to load question:', error);
+      const errorMessage = getErrorMessage(error);
+      setError(errorMessage);
+      
+      // If there's an error, try to end the game
+      try {
+        await endGame();
+      } catch (endGameError) {
+        console.error('Failed to end game:', endGameError);
+        router.push('/dashboard');
+      }
     }
   };
 
@@ -70,7 +99,11 @@ export default function QuizPage() {
     setIsSubmitting(true);
     stop();
 
-    const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+    // Calculate time taken, but cap it at timeLimit if available
+    let timeTaken = Math.floor((Date.now() - startTime) / 1000);
+    if (currentQuestion.timeLimit !== null && timeTaken > currentQuestion.timeLimit) {
+      timeTaken = currentQuestion.timeLimit;
+    }
 
     try {
       const result = await quizApi.submitAnswer(sessionId, {
@@ -91,8 +124,10 @@ export default function QuizPage() {
       }, 2000);
     } catch (error) {
       console.error('Failed to submit answer:', error);
-    } finally {
+      setError(getErrorMessage(error));
+      // Reset to allow retry
       setIsSubmitting(false);
+      setSelectedOptionId(null);
     }
   };
 
@@ -103,10 +138,15 @@ export default function QuizPage() {
     stop();
 
     try {
+      // Use timeLimit as timeTaken for timeout, but cap at 120 seconds
+      const timeTaken = currentQuestion.timeLimit 
+        ? Math.min(currentQuestion.timeLimit, 120)
+        : 30;
+      
       const result = await quizApi.submitAnswer(sessionId, {
         questionId: currentQuestion.questionId,
         selectedOptionId: -1,
-        timeTaken: currentQuestion.timeLimit || 30,
+        timeTaken,
       });
 
       setAnswerResult(result);
@@ -121,7 +161,7 @@ export default function QuizPage() {
       }, 2000);
     } catch (error) {
       console.error('Failed to handle timeout:', error);
-    } finally {
+      setError(getErrorMessage(error));
       setIsSubmitting(false);
     }
   };
@@ -133,6 +173,8 @@ export default function QuizPage() {
       router.push(`/results?sessionId=${sessionId}`);
     } catch (error) {
       console.error('Failed to end game:', error);
+      // Even if ending fails, redirect to dashboard
+      router.push('/dashboard');
     }
   };
 
@@ -150,14 +192,23 @@ export default function QuizPage() {
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-4xl mx-auto px-4">
+          {error && (
+            <ErrorMessage 
+              message={error} 
+              className="mb-4"
+              onDismiss={() => setError(null)}
+            />
+          )}
           <div className="flex justify-between items-center mb-6">
             <div>
               <h2 className="text-xl font-bold">Score: {score}</h2>
             </div>
-            <QuizTimer
-              timeRemaining={timeRemaining}
-              totalTime={currentQuestion.timeLimit || 30}
-            />
+            {currentQuestion && (
+              <QuizTimer
+                timeRemaining={timeRemaining}
+                totalTime={currentQuestion.timeLimit || 30}
+              />
+            )}
           </div>
 
           <QuestionCard

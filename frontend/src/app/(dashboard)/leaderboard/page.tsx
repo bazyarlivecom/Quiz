@@ -3,10 +3,13 @@
 import { useEffect, useState } from 'react';
 import ProtectedRoute from '../../../components/layout/ProtectedRoute';
 import { leaderboardApi, LeaderboardEntry } from '../../../services/api/leaderboardApi';
+import { ErrorMessage } from '../../../components/common';
+import { getErrorMessage } from '../../../utils/errorHandler';
 
 export default function LeaderboardPage() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [type, setType] = useState<'global' | 'weekly'>('global');
 
   useEffect(() => {
@@ -15,6 +18,7 @@ export default function LeaderboardPage() {
 
   const loadLeaderboard = async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = type === 'global'
         ? await leaderboardApi.getGlobal(100, 0)
@@ -22,6 +26,7 @@ export default function LeaderboardPage() {
       setLeaderboard(data);
     } catch (error) {
       console.error('Failed to load leaderboard:', error);
+      setError(getErrorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -48,9 +53,21 @@ export default function LeaderboardPage() {
             </button>
           </div>
 
+          {error && (
+            <ErrorMessage 
+              message={error} 
+              className="mb-4"
+              onDismiss={() => setError(null)}
+            />
+          )}
+
           {loading ? (
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          ) : leaderboard.length === 0 && !error ? (
+            <div className="card p-8 text-center">
+              <p className="text-gray-500">No leaderboard entries found.</p>
             </div>
           ) : (
             <div className="card overflow-hidden">

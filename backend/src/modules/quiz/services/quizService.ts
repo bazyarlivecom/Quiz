@@ -55,11 +55,35 @@ export class QuizService {
     this.scoringService = new ScoringService();
   }
 
+  async getActiveGame(userId: number): Promise<QuizSession | null> {
+    const activeGames = await this.sessionRepository.findByUserId(userId, 'ACTIVE');
+    return activeGames.length > 0 ? activeGames[0] : null;
+  }
+
+  async abandonGame(sessionId: number, userId: number): Promise<void> {
+    const session = await this.sessionRepository.findById(sessionId);
+    if (!session || session.user_id !== userId) {
+      throw new NotFoundError('Session not found or access denied');
+    }
+
+    if (session.status !== 'ACTIVE') {
+      throw new ConflictError('Session is not active');
+    }
+
+    await this.sessionRepository.update(sessionId, {
+      status: 'ABANDONED',
+      endedAt: new Date(),
+    });
+  }
+
   async startGame(userId: number, dto: StartGameDto): Promise<QuizSession> {
     if (dto.gameMode !== 'PRACTICE') {
       const activeGames = await this.sessionRepository.findByUserId(userId, 'ACTIVE');
       if (activeGames.length > 0) {
-        throw new ConflictError('User already has an active game');
+        const activeGame = activeGames[0];
+        const error = new ConflictError('User already has an active game');
+        (error as any).activeSessionId = activeGame.id;
+        throw error;
       }
     }
 
@@ -204,6 +228,15 @@ export class QuizService {
       ? this.scoringService.calculatePoints(question, dto.timeTaken || 0)
       : 0;
 
+    // Get current answer count to validate constraint
+    const currentAnswers = await this.answerRepository.getMatchAnswers(sessionId);
+    const currentAnswerCount = currentAnswers.length;
+    
+    // Validate that we're not exceeding questions_count
+    if (currentAnswerCount >= session.questions_count) {
+      throw new ConflictError('All questions have already been answered');
+    }
+
     const answer = await this.answerRepository.create({
       matchId: sessionId,
       questionId: dto.questionId,
@@ -214,17 +247,31 @@ export class QuizService {
       pointsEarned,
     });
 
+    // Calculate new totals from actual answers to avoid constraint violations
+    const allAnswers = await this.answerRepository.getMatchAnswers(sessionId);
+    const correctCount = allAnswers.filter(a => a.is_correct).length;
+    const wrongCount = allAnswers.filter(a => !a.is_correct).length;
+    
+    // Update session statistics using calculated values (SET instead of increment)
+    // This ensures constraint check_answers_sum is always satisfied
     if (!isPractice) {
-      await this.sessionRepository.update(sessionId, {
-        totalScore: pointsEarned,
-        correctAnswers: isCorrect ? 1 : 0,
-        wrongAnswers: isCorrect ? 0 : 1,
-      });
+      const totalScore = allAnswers.reduce((sum, a) => sum + a.points_earned, 0);
+      await db.query(
+        `UPDATE matches 
+         SET correct_answers = $1, 
+             wrong_answers = $2, 
+             total_score = $3
+         WHERE id = $4`,
+        [correctCount, wrongCount, totalScore, sessionId]
+      );
     } else {
-      await this.sessionRepository.update(sessionId, {
-        correctAnswers: isCorrect ? 1 : 0,
-        wrongAnswers: isCorrect ? 0 : 1,
-      });
+      await db.query(
+        `UPDATE matches 
+         SET correct_answers = $1, 
+             wrong_answers = $2
+         WHERE id = $3`,
+        [correctCount, wrongCount, sessionId]
+      );
     }
 
     return {

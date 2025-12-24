@@ -5,7 +5,7 @@ const path = require('path');
 // تنظیمات دیتابیس
 const config = {
   host: 'localhost',
-  port: 5433,
+  port: 5432,
   user: 'postgres',
   password: '4522',
   database: 'postgres', // برای ایجاد database جدید
@@ -111,7 +111,7 @@ async function setupDatabase() {
     console.error('\n❌ Error:', error.message);
     console.error('\nPlease check:');
     console.error('1. PostgreSQL is running');
-    console.error('2. Port 5433 is correct');
+    console.error('2. Port 5432 is correct');
     console.error('3. Username and password are correct');
     process.exit(1);
   }
